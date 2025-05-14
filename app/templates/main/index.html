@@ -1,0 +1,93 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="py-5 text-center bg-light rounded-3 mb-4">
+    <div class="py-lg-5">
+        <h1 class="display-5 fw-bold text-primary">Welcome to CulinaryConnect</h1>
+        <div class="col-lg-8 mx-auto">
+            <p class="lead mb-4">Share your favorite recipes and discover culinary delights from around the world!</p>
+            <div class="d-grid gap-2 d-sm-flex justify-content-sm-center">
+                <a href="{{ url_for('main.all_recipes') }}" class="btn btn-primary btn-lg px-4 gap-3">Browse Recipes</a>
+                {% if current_user.is_authenticated %}
+                <a href="{{ url_for('main.new_recipe') }}" class="btn btn-outline-secondary btn-lg px-4">Add Recipe</a>
+                {% else %}
+                <a href="{{ url_for('auth.signup') }}" class="btn btn-outline-secondary btn-lg px-4">Join Now</a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Featured Recipes Section -->
+<section class="mb-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="fw-bold">Featured Recipes</h2>
+        <a href="{{ url_for('main.all_recipes') }}" class="btn btn-sm btn-outline-primary">View All</a>
+    </div>
+    
+    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+        {% if recipes %}
+            {% for recipe in recipes %}
+                <div class="col">
+                    <div class="card h-100 shadow-sm">
+                        {% if recipe.image_url %}
+                            <img src="{{ recipe.image_url }}" class="card-img-top" alt="{{ recipe.title }}">
+                        {% else %}
+                            <div class="card-img-top bg-secondary text-white d-flex align-items-center justify-content-center" style="height: 180px;">
+                                <i class="fas fa-utensils fa-3x"></i>
+                            </div>
+                        {% endif %}
+                        <div class="card-body">
+                            <h5 class="card-title">{{ recipe.title }}</h5>
+                            <p class="card-text">{{ recipe.description|truncate(100) }}</p>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div class="text-muted">
+                                    <small><i class="fas fa-clock me-1"></i>{{ recipe.preparation_time + recipe.cooking_time }} min</small>
+                                </div>
+                                <small class="text-muted">By {{ recipe.user.username }}</small>
+                            </div>
+                        </div>
+                        <div class="card-footer bg-transparent">
+                            <a href="{{ url_for('main.recipe_detail', recipe_id=recipe.id) }}" class="btn btn-sm btn-outline-primary w-100">View Recipe</a>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        {% else %}
+            <div class="col-12">
+                <div class="alert alert-info">
+                    No recipes available yet. Be the first to add one!
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</section>
+
+<!-- Categories Section -->
+<section>
+    <h2 class="fw-bold mb-4">Browse by Category</h2>
+    <div class="row row-cols-2 row-cols-md-3 row-cols-lg-4 g-4">
+        {% if categories %}
+            {% for category in categories %}
+                <div class="col">
+                    <a href="{{ url_for('main.all_recipes', category=category.id) }}" class="text-decoration-none">
+                        <div class="card h-100 shadow-sm hover-effect">
+                            <div class="card-body text-center">
+                                <i class="fas fa-tags fa-2x mb-3 text-primary"></i>
+                                <h5 class="card-title">{{ category.name }}</h5>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+            {% endfor %}
+        {% else %}
+            <div class="col-12">
+                <div class="alert alert-info">
+                    No categories available yet.
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</section>
+{% endblock %} 
