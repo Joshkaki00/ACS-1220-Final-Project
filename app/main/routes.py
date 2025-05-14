@@ -1,8 +1,8 @@
 from flask import Blueprint, render_template, redirect, url_for, flash, request
 from flask_login import login_required, current_user
-from app.extensions import db
+from app.extensions import db, bcrypt
 from app.models import Recipe, Category, User, Ingredient, RecipeIngredient, Comment
-from app.main.forms import RecipeForm, CommentForm
+from app.main.forms import RecipeForm, CommentForm, ProfileForm
 
 main = Blueprint('main', __name__)
 
@@ -35,9 +35,37 @@ def profile(user_id):
 @login_required
 def edit_profile():
     """Allow users to edit their profile information."""
-    # This will be implemented later
-    flash('Profile editing will be available soon!', 'info')
-    return redirect(url_for('main.profile', user_id=current_user.id))
+    form = ProfileForm(original_username=current_user.username, original_email=current_user.email)
+    
+    if form.validate_on_submit():
+        # Verify current password if changing password
+        password_changed = form.new_password.data and form.current_password.data
+        
+        if password_changed and not bcrypt.check_password_hash(current_user.password, form.current_password.data):
+            flash('Current password is incorrect.', 'danger')
+            return render_template('main/profile_edit.html', form=form, title='Edit Profile')
+        
+        # Update user information
+        current_user.username = form.username.data
+        current_user.email = form.email.data
+        current_user.profile_picture = form.profile_picture.data
+        
+        # Update password if provided
+        if password_changed:
+            hashed_password = bcrypt.generate_password_hash(form.new_password.data).decode('utf-8')
+            current_user.password = hashed_password
+        
+        db.session.commit()
+        flash('Your profile has been updated!', 'success')
+        return redirect(url_for('main.profile', user_id=current_user.id))
+    
+    elif request.method == 'GET':
+        # Pre-populate form with current user data
+        form.username.data = current_user.username
+        form.email.data = current_user.email
+        form.profile_picture.data = current_user.profile_picture
+    
+    return render_template('main/profile_edit.html', form=form, title='Edit Profile')
 
 @main.route('/recipes')
 def all_recipes():
