@@ -7,6 +7,7 @@ load_dotenv()
 class Config(object):
     """Set environment variables."""
 
-    SQLALCHEMY_DATABASE_URI = os.getenv("DATABASE_URL")
-    SECRET_KEY = os.getenv('SECRET_KEY')
+    # Use SQLite by default if no DATABASE_URL is provided
+    SQLALCHEMY_DATABASE_URI = os.getenv("DATABASE_URL", "sqlite:///culinaryconnect.db")
+    SECRET_KEY = os.getenv('SECRET_KEY', 'dev-key-for-development-only')
     SQLALCHEMY_TRACK_MODIFICATIONS = False
