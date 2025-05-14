@@ -1,0 +1,104 @@
+/* Custom Styles for CulinaryConnect */
+
+/* General styles */
+body {
+    font-family: 'Poppins', sans-serif;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+main {
+    flex: 1;
+}
+
+/* Card hover effects */
+.hover-effect {
+    transition: transform 0.3s ease-in-out;
+}
+
+.hover-effect:hover {
+    transform: translateY(-5px);
+}
+
+/* Recipe cards */
+.card-img-top {
+    height: 180px;
+    object-fit: cover;
+}
+
+/* Ingredient list in recipe detail */
+.ingredient-list {
+    list-style-type: none;
+    padding-left: 0;
+}
+
+.ingredient-list li {
+    padding: 8px 0;
+    border-bottom: 1px solid #eee;
+}
+
+.ingredient-list li:last-child {
+    border-bottom: none;
+}
+
+/* Recipe steps */
+.recipe-steps {
+    counter-reset: step-counter;
+    list-style-type: none;
+    padding-left: 0;
+}
+
+.recipe-steps li {
+    margin-bottom: 1.5rem;
+    padding-left: 3rem;
+    position: relative;
+}
+
+.recipe-steps li:before {
+    content: counter(step-counter);
+    counter-increment: step-counter;
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 2.5rem;
+    height: 2.5rem;
+    background-color: #4285f4;
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+}
+
+/* Profile page */
+.profile-header {
+    background-color: #f8f9fa;
+    border-radius: 10px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+}
+
+.profile-picture {
+    width: 150px;
+    height: 150px;
+    object-fit: cover;
+    border-radius: 50%;
+    border: 5px solid white;
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+}
+
+/* Comment section */
+.comment-card {
+    margin-bottom: 1rem;
+    border-left: 3px solid #4285f4;
+}
+
+/* Media queries */
+@media (max-width: 576px) {
+    .profile-picture {
+        width: 100px;
+        height: 100px;
+    }
+} 
