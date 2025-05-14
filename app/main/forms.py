@@ -1,9 +1,9 @@
 # Create your forms here.
 
 from flask_wtf import FlaskForm
-from wtforms import StringField, TextAreaField, IntegerField, SelectMultipleField, SubmitField, FloatField
-from wtforms.validators import DataRequired, Length, NumberRange, URL, Optional
-from app.models import Category
+from wtforms import StringField, TextAreaField, IntegerField, SelectMultipleField, SubmitField, FloatField, PasswordField
+from wtforms.validators import DataRequired, Length, NumberRange, URL, Optional, Email, EqualTo, ValidationError
+from app.models import Category, User
 
 class RecipeForm(FlaskForm):
     """Form for creating and editing recipes."""
@@ -69,3 +69,56 @@ class CommentForm(FlaskForm):
     ])
     
     submit = SubmitField('Post Comment')
+    
+    
+class ProfileForm(FlaskForm):
+    """Form for editing user profile."""
+    
+    username = StringField('Username', validators=[
+        DataRequired(),
+        Length(min=3, max=80, message='Username must be between 3 and 80 characters')
+    ])
+    
+    email = StringField('Email', validators=[
+        DataRequired(),
+        Email(message='Please enter a valid email address')
+    ])
+    
+    profile_picture = StringField('Profile Picture URL', validators=[
+        Optional(),
+        URL(message='Please provide a valid URL for the profile picture')
+    ])
+    
+    current_password = PasswordField('Current Password')
+    
+    new_password = PasswordField('New Password', validators=[
+        Optional(),
+        Length(min=6, message='Password must be at least 6 characters')
+    ])
+    
+    confirm_password = PasswordField('Confirm New Password', validators=[
+        Optional(),
+        EqualTo('new_password', message='Passwords must match')
+    ])
+    
+    submit = SubmitField('Update Profile')
+    
+    def __init__(self, original_username, original_email, *args, **kwargs):
+        """Initialize the form with original username and email."""
+        super(ProfileForm, self).__init__(*args, **kwargs)
+        self.original_username = original_username
+        self.original_email = original_email
+    
+    def validate_username(self, username):
+        """Check if username is already taken."""
+        if username.data != self.original_username:
+            user = User.query.filter_by(username=username.data).first()
+            if user:
+                raise ValidationError('Username is already taken. Please choose a different one.')
+    
+    def validate_email(self, email):
+        """Check if email is already registered."""
+        if email.data != self.original_email:
+            user = User.query.filter_by(email=email.data).first()
+            if user:
+                raise ValidationError('Email is already registered. Please use a different one.')
