@@ -1,0 +1,144 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container">
+    <h1 class="mb-4">{{ heading }}</h1>
+    
+    <form method="POST" novalidate>
+        {{ form.hidden_tag() }}
+        
+        <div class="row">
+            <!-- Left Column -->
+            <div class="col-lg-8">
+                <div class="card shadow-sm mb-4">
+                    <div class="card-body">
+                        <h5 class="card-title mb-3">Recipe Information</h5>
+                        
+                        <div class="mb-3">
+                            {{ form.title.label(class="form-label") }}
+                            {% if form.title.errors %}
+                                {{ form.title(class="form-control is-invalid") }}
+                                <div class="invalid-feedback">
+                                    {% for error in form.title.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% else %}
+                                {{ form.title(class="form-control") }}
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-3">
+                            {{ form.description.label(class="form-label") }}
+                            {% if form.description.errors %}
+                                {{ form.description(class="form-control is-invalid", rows=5) }}
+                                <div class="invalid-feedback">
+                                    {% for error in form.description.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% else %}
+                                {{ form.description(class="form-control", rows=5) }}
+                            {% endif %}
+                            <div class="form-text">Describe your recipe in detail, including any special tips or techniques.</div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            {{ form.image_url.label(class="form-label") }}
+                            {% if form.image_url.errors %}
+                                {{ form.image_url(class="form-control is-invalid") }}
+                                <div class="invalid-feedback">
+                                    {% for error in form.image_url.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% else %}
+                                {{ form.image_url(class="form-control", placeholder="https://example.com/image.jpg") }}
+                            {% endif %}
+                            <div class="form-text">Enter a URL for an image of your completed dish.</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Ingredient section will be added later -->
+            </div>
+            
+            <!-- Right Column -->
+            <div class="col-lg-4">
+                <div class="card shadow-sm mb-4">
+                    <div class="card-body">
+                        <h5 class="card-title mb-3">Recipe Details</h5>
+                        
+                        <div class="mb-3">
+                            {{ form.preparation_time.label(class="form-label") }}
+                            {% if form.preparation_time.errors %}
+                                {{ form.preparation_time(class="form-control is-invalid", min=1) }}
+                                <div class="invalid-feedback">
+                                    {% for error in form.preparation_time.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% else %}
+                                {{ form.preparation_time(class="form-control", min=1) }}
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-3">
+                            {{ form.cooking_time.label(class="form-label") }}
+                            {% if form.cooking_time.errors %}
+                                {{ form.cooking_time(class="form-control is-invalid", min=0) }}
+                                <div class="invalid-feedback">
+                                    {% for error in form.cooking_time.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% else %}
+                                {{ form.cooking_time(class="form-control", min=0) }}
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-3">
+                            {{ form.servings.label(class="form-label") }}
+                            {% if form.servings.errors %}
+                                {{ form.servings(class="form-control is-invalid", min=1) }}
+                                <div class="invalid-feedback">
+                                    {% for error in form.servings.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% else %}
+                                {{ form.servings(class="form-control", min=1) }}
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card shadow-sm mb-4">
+                    <div class="card-body">
+                        <h5 class="card-title mb-3">Categories</h5>
+                        
+                        <div class="mb-3">
+                            {% if form.category_ids.errors %}
+                                {{ form.category_ids(class="form-select is-invalid", multiple=True, size=7) }}
+                                <div class="invalid-feedback">
+                                    {% for error in form.category_ids.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% else %}
+                                {{ form.category_ids(class="form-select", multiple=True, size=7) }}
+                            {% endif %}
+                            <div class="form-text">Hold Ctrl (or Cmd on Mac) to select multiple categories.</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="d-grid gap-2">
+                    {{ form.submit(class="btn btn-primary btn-lg") }}
+                    <a href="{{ url_for('main.all_recipes') }}" class="btn btn-outline-secondary">Cancel</a>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+{% endblock %} 
