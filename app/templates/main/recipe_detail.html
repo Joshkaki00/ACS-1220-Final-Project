@@ -212,13 +212,10 @@
                 <h3 class="card-title fw-bold">More from {{ recipe.user.username }}</h3>
                 <div class="list-group list-group-flush">
                     {% for user_recipe in recipe.user.recipes %}
-                        {% if user_recipe.id != recipe.id %}
+                        {% if user_recipe.id != recipe.id and loop.index <= 5 %}
                             <a href="{{ url_for('main.recipe_detail', recipe_id=user_recipe.id) }}" class="list-group-item list-group-item-action">
                                 {{ user_recipe.title }}
                             </a>
-                            {% if loop.index >= 5 %}
-                                {% break %}
-                            {% endif %}
                         {% endif %}
                     {% else %}
                         <p class="text-muted">No other recipes found.</p>
