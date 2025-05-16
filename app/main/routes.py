@@ -1,8 +1,8 @@
 from flask import Blueprint, render_template, redirect, url_for, flash, request
 from flask_login import login_required, current_user
 from app.extensions import db, bcrypt
-from app.models import Recipe, Category, User, Ingredient, RecipeIngredient, Comment, Favorite
-from app.main.forms import RecipeForm, CommentForm, ProfileForm
+from app.models import Recipe, Category, User, Ingredient, RecipeIngredient, Comment, Favorite, Rating
+from app.main.forms import RecipeForm, CommentForm, ProfileForm, RatingForm
 from sqlalchemy import or_
 
 main = Blueprint('main', __name__)
@@ -119,13 +119,31 @@ def all_recipes():
 
 @main.route('/recipes/<int:recipe_id>', methods=['GET', 'POST'])
 def recipe_detail(recipe_id):
-    """Display a specific recipe with details and handle comments."""
-    recipe = Recipe.query.get_or_404(recipe_id)
-    form = CommentForm()
+    """
+    Display a specific recipe with details and handle comments and ratings.
     
-    if form.validate_on_submit() and current_user.is_authenticated:
+    Allows authenticated users to comment on and rate recipes.
+    """
+    recipe = Recipe.query.get_or_404(recipe_id)
+    comment_form = CommentForm()
+    rating_form = RatingForm()
+    
+    # Check if user has already rated this recipe
+    user_rating = None
+    if current_user.is_authenticated:
+        user_rating = Rating.query.filter_by(
+            user_id=current_user.id, 
+            recipe_id=recipe.id
+        ).first()
+        
+        # Pre-select current rating if it exists
+        if user_rating:
+            rating_form.value.data = user_rating.value
+    
+    # Handle comment submission
+    if comment_form.validate_on_submit() and current_user.is_authenticated:
         comment = Comment(
-            content=form.content.data,
+            content=comment_form.content.data,
             recipe_id=recipe.id,
             user_id=current_user.id
         )
@@ -133,10 +151,31 @@ def recipe_detail(recipe_id):
         db.session.commit()
         flash('Your comment has been added!', 'success')
         return redirect(url_for('main.recipe_detail', recipe_id=recipe.id))
+    
+    # Handle rating submission
+    if 'rating_submit' in request.form and rating_form.validate_on_submit() and current_user.is_authenticated:
+        if user_rating:
+            # Update existing rating
+            user_rating.value = rating_form.value.data
+            flash('Your rating has been updated!', 'success')
+        else:
+            # Create new rating
+            rating = Rating(
+                value=rating_form.value.data,
+                recipe_id=recipe.id,
+                user_id=current_user.id
+            )
+            db.session.add(rating)
+            flash('Your rating has been added!', 'success')
+            
+        db.session.commit()
+        return redirect(url_for('main.recipe_detail', recipe_id=recipe.id))
         
     return render_template('main/recipe_detail.html', 
                            recipe=recipe,
-                           form=form,
+                           comment_form=comment_form,
+                           rating_form=rating_form,
+                           user_rating=user_rating,
                            title=recipe.title)
 
 @main.route('/recipes/new', methods=['GET', 'POST'])
