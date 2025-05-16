@@ -29,6 +29,28 @@
                 </div>
                 {% endif %}
             </div>
+            
+            <!-- Rating Display -->
+            <div class="d-flex align-items-center mt-2">
+                <div class="me-2">
+                    {% for i in range(5) %}
+                        {% if i < recipe.average_rating|int %}
+                            <i class="fas fa-star text-warning"></i>
+                        {% elif i < (recipe.average_rating + 0.5)|int %}
+                            <i class="fas fa-star-half-alt text-warning"></i>
+                        {% else %}
+                            <i class="far fa-star text-warning"></i>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+                <div class="text-muted">
+                    {% if recipe.ratings %}
+                        {{ "%.1f"|format(recipe.average_rating) }} ({{ recipe.ratings|length }} rating{{ 's' if recipe.ratings|length != 1 }})
+                    {% else %}
+                        No ratings yet
+                    {% endif %}
+                </div>
+            </div>
         </div>
         
         <!-- Recipe Image -->
@@ -72,11 +94,12 @@
                 <div class="card mb-4">
                     <div class="card-body">
                         <form method="POST" action="{{ url_for('main.recipe_detail', recipe_id=recipe.id) }}">
+                            {{ comment_form.hidden_tag() }}
                             <div class="mb-3">
                                 <label for="content" class="form-label">Add a comment</label>
-                                <textarea class="form-control" id="content" name="content" rows="3" required></textarea>
+                                {{ comment_form.content(class="form-control", rows="3", required=true) }}
                             </div>
-                            <button type="submit" class="btn btn-primary">Post Comment</button>
+                            {{ comment_form.submit(class="btn btn-primary") }}
                         </form>
                     </div>
                 </div>
@@ -106,6 +129,37 @@
     
     <!-- Sidebar -->
     <div class="col-lg-4">
+        <!-- Rate This Recipe Card -->
+        {% if current_user.is_authenticated and recipe.user_id != current_user.id %}
+        <div class="card mb-4 shadow-sm">
+            <div class="card-header bg-light">
+                <h3 class="card-title fw-bold mb-0">Rate This Recipe</h3>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('main.recipe_detail', recipe_id=recipe.id) }}">
+                    {{ rating_form.hidden_tag() }}
+                    <div class="mb-3">
+                        <div class="rating-container mb-3">
+                            {% for choice in rating_form.value %}
+                            <div class="form-check form-check-inline">
+                                {{ choice }}
+                                <label class="form-check-label" for="{{ choice.id }}">
+                                    {% for i in range(loop.index) %}
+                                    <i class="fas fa-star text-warning"></i>
+                                    {% endfor %}
+                                </label>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    <button type="submit" name="rating_submit" class="btn btn-primary w-100">
+                        {% if user_rating %}Update{% else %}Submit{% endif %} Rating
+                    </button>
+                </form>
+            </div>
+        </div>
+        {% endif %}
+        
         <div class="card mb-4 shadow-sm">
             <div class="card-body">
                 <h3 class="card-title fw-bold">Recipe Details</h3>
