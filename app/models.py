@@ -24,6 +24,7 @@ class User(db.Model, UserMixin):
         recipes (relationship): One-to-many relationship with Recipe model
         comments (relationship): One-to-many relationship with Comment model
         favorites (relationship): One-to-many relationship with Favorite model
+        ratings (relationship): One-to-many relationship with Rating model
     """
     
     id = db.Column(db.Integer, primary_key=True)
@@ -36,6 +37,7 @@ class User(db.Model, UserMixin):
     recipes = db.relationship('Recipe', back_populates='user', cascade='all, delete-orphan')
     comments = db.relationship('Comment', back_populates='user', cascade='all, delete-orphan')
     favorites = db.relationship('Favorite', back_populates='user', cascade='all, delete-orphan')
+    ratings = db.relationship('Rating', back_populates='user', cascade='all, delete-orphan')
     
     def __repr__(self):
         return f'<User {self.username}>'
@@ -58,6 +60,7 @@ class Recipe(db.Model):
         recipe_ingredients (relationship): One-to-many relationship with RecipeIngredient model
         comments (relationship): One-to-many relationship with Comment model
         favorites (relationship): One-to-many relationship with Favorite model
+        ratings (relationship): One-to-many relationship with Rating model
         categories (relationship): Many-to-many relationship with Category model
     """
     
@@ -79,11 +82,20 @@ class Recipe(db.Model):
                               cascade='all, delete-orphan')
     favorites = db.relationship('Favorite', back_populates='recipe',
                                cascade='all, delete-orphan')
+    ratings = db.relationship('Rating', back_populates='recipe',
+                             cascade='all, delete-orphan')
     categories = db.relationship('Category', secondary=recipe_categories, 
                                 back_populates='recipes')
     
     def __repr__(self):
         return f'<Recipe {self.title}>'
+    
+    @property
+    def average_rating(self):
+        """Calculate the average rating for this recipe."""
+        if not self.ratings:
+            return 0
+        return sum(rating.value for rating in self.ratings) / len(self.ratings)
 
 class Ingredient(db.Model):
     """
@@ -206,3 +218,35 @@ class Favorite(db.Model):
     
     def __repr__(self):
         return f'<Favorite {self.user_id}:{self.recipe_id}>'
+
+class Rating(db.Model):
+    """
+    Rating model for recipe ratings.
+    
+    Attributes:
+        id (int): Primary key for the rating
+        value (int): Rating value (1-5)
+        created_at (datetime): Timestamp when the rating was submitted
+        recipe_id (int): Foreign key to the Recipe being rated
+        user_id (int): Foreign key to the User who rated
+        recipe (relationship): Many-to-one relationship with Recipe model
+        user (relationship): Many-to-one relationship with User model
+    
+    Constraints:
+        - A user can only rate a recipe once (unique constraint on user_id, recipe_id)
+    """
+    
+    id = db.Column(db.Integer, primary_key=True)
+    value = db.Column(db.Integer, nullable=False)  # 1-5 star rating
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    recipe_id = db.Column(db.Integer, db.ForeignKey('recipe.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    
+    recipe = db.relationship('Recipe', back_populates='ratings')
+    user = db.relationship('User', back_populates='ratings')
+    
+    # Ensure a user can only rate a recipe once
+    __table_args__ = (db.UniqueConstraint('user_id', 'recipe_id'),)
+    
+    def __repr__(self):
+        return f'<Rating {self.user_id}:{self.recipe_id}:{self.value}>'
