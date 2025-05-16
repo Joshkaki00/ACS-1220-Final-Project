@@ -11,7 +11,20 @@ recipe_categories = db.Table('recipe_categories',
 )
 
 class User(db.Model, UserMixin):
-    """User model for authentication and recipe ownership."""
+    """
+    User model for authentication and recipe ownership.
+    
+    Attributes:
+        id (int): Primary key for the user
+        username (str): Unique username for the user
+        email (str): Unique email address for the user
+        password (str): Hashed password for authentication
+        profile_picture (str): URL to the user's profile picture
+        created_at (datetime): Timestamp when the user account was created
+        recipes (relationship): One-to-many relationship with Recipe model
+        comments (relationship): One-to-many relationship with Comment model
+        favorites (relationship): One-to-many relationship with Favorite model
+    """
     
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(80), unique=True, nullable=False)
@@ -28,7 +41,25 @@ class User(db.Model, UserMixin):
         return f'<User {self.username}>'
 
 class Recipe(db.Model):
-    """Recipe model for culinary creations."""
+    """
+    Recipe model for culinary creations.
+    
+    Attributes:
+        id (int): Primary key for the recipe
+        title (str): Title of the recipe
+        description (text): Detailed description of the recipe
+        preparation_time (int): Time required for preparation in minutes
+        cooking_time (int): Time required for cooking in minutes
+        servings (int): Number of servings the recipe yields
+        image_url (str): URL to the recipe image
+        created_at (datetime): Timestamp when the recipe was created
+        user_id (int): Foreign key to the User who created the recipe
+        user (relationship): Many-to-one relationship with User model
+        recipe_ingredients (relationship): One-to-many relationship with RecipeIngredient model
+        comments (relationship): One-to-many relationship with Comment model
+        favorites (relationship): One-to-many relationship with Favorite model
+        categories (relationship): Many-to-many relationship with Category model
+    """
     
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(100), nullable=False)
@@ -55,7 +86,15 @@ class Recipe(db.Model):
         return f'<Recipe {self.title}>'
 
 class Ingredient(db.Model):
-    """Ingredient model for recipe components."""
+    """
+    Ingredient model for recipe components.
+    
+    Attributes:
+        id (int): Primary key for the ingredient
+        name (str): Unique name of the ingredient
+        measurement_unit (str): Default unit of measurement for the ingredient
+        recipe_ingredients (relationship): One-to-many relationship with RecipeIngredient model
+    """
     
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False, unique=True)
@@ -69,7 +108,17 @@ class Ingredient(db.Model):
         return f'<Ingredient {self.name}>'
 
 class RecipeIngredient(db.Model):
-    """Join table for recipes and ingredients with quantity."""
+    """
+    Join table for recipes and ingredients with quantity information.
+    
+    Attributes:
+        id (int): Primary key
+        recipe_id (int): Foreign key to the Recipe
+        ingredient_id (int): Foreign key to the Ingredient
+        quantity (float): Quantity of the ingredient used in the recipe
+        recipe (relationship): Many-to-one relationship with Recipe model
+        ingredient (relationship): Many-to-one relationship with Ingredient model
+    """
     
     id = db.Column(db.Integer, primary_key=True)
     recipe_id = db.Column(db.Integer, db.ForeignKey('recipe.id'), nullable=False)
@@ -84,7 +133,15 @@ class RecipeIngredient(db.Model):
         return f'<RecipeIngredient {self.recipe_id}:{self.ingredient_id}>'
 
 class Category(db.Model):
-    """Category model for recipe classification."""
+    """
+    Category model for recipe classification.
+    
+    Attributes:
+        id (int): Primary key for the category
+        name (str): Unique name of the category
+        description (text): Description of what the category represents
+        recipes (relationship): Many-to-many relationship with Recipe model
+    """
     
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False, unique=True)
@@ -97,7 +154,18 @@ class Category(db.Model):
         return f'<Category {self.name}>'
 
 class Comment(db.Model):
-    """Comment model for recipe feedback."""
+    """
+    Comment model for recipe feedback.
+    
+    Attributes:
+        id (int): Primary key for the comment
+        content (text): Content of the comment
+        created_at (datetime): Timestamp when the comment was created
+        recipe_id (int): Foreign key to the Recipe being commented on
+        user_id (int): Foreign key to the User who made the comment
+        recipe (relationship): Many-to-one relationship with Recipe model
+        user (relationship): Many-to-one relationship with User model
+    """
     
     id = db.Column(db.Integer, primary_key=True)
     content = db.Column(db.Text, nullable=False)
@@ -112,7 +180,19 @@ class Comment(db.Model):
         return f'<Comment {self.id}>'
 
 class Favorite(db.Model):
-    """Favorite model for tracking user favorites."""
+    """
+    Favorite model for tracking user favorites.
+    
+    Attributes:
+        id (int): Primary key for the favorite entry
+        user_id (int): Foreign key to the User who favorited
+        recipe_id (int): Foreign key to the Recipe that was favorited
+        user (relationship): Many-to-one relationship with User model
+        recipe (relationship): Many-to-one relationship with Recipe model
+    
+    Constraints:
+        - A user can only favorite a recipe once (unique constraint on user_id, recipe_id)
+    """
     
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
