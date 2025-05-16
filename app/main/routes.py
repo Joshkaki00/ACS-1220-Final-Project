@@ -296,3 +296,69 @@ def delete_comment(comment_id):
     
     flash('Your comment has been deleted!', 'success')
     return redirect(url_for('main.recipe_detail', recipe_id=recipe_id))
+
+@main.route('/dashboard')
+@login_required
+def dashboard():
+    """
+    User dashboard for managing recipes, favorites, and ratings.
+    
+    Displays user's recipes, favorites, and recently rated recipes in a dashboard layout.
+    """
+    # Get user's recipes
+    user_recipes = Recipe.query.filter_by(user_id=current_user.id).order_by(Recipe.created_at.desc()).all()
+    
+    # Get user's favorite recipes
+    favorites = Favorite.query.filter_by(user_id=current_user.id).order_by(Favorite.id.desc()).all()
+    favorite_recipes = [favorite.recipe for favorite in favorites]
+    
+    # Get user's recent ratings
+    recent_ratings = Rating.query.filter_by(user_id=current_user.id).order_by(Rating.created_at.desc()).limit(5).all()
+    
+    # Get counts
+    recipe_count = len(user_recipes)
+    favorite_count = len(favorites)
+    comment_count = Comment.query.filter_by(user_id=current_user.id).count()
+    rating_count = Rating.query.filter_by(user_id=current_user.id).count()
+    
+    return render_template('main/dashboard.html',
+                          user_recipes=user_recipes,
+                          favorite_recipes=favorite_recipes,
+                          recent_ratings=recent_ratings,
+                          recipe_count=recipe_count,
+                          favorite_count=favorite_count,
+                          comment_count=comment_count,
+                          rating_count=rating_count,
+                          title='My Dashboard')
+
+@main.route('/favorites/toggle/<int:recipe_id>', methods=['POST'])
+@login_required
+def toggle_favorite(recipe_id):
+    """
+    Toggle a recipe as favorite/unfavorite.
+    
+    Adds or removes a recipe from the user's favorites.
+    """
+    recipe = Recipe.query.get_or_404(recipe_id)
+    
+    # Check if recipe is already favorited
+    favorite = Favorite.query.filter_by(
+        user_id=current_user.id,
+        recipe_id=recipe.id
+    ).first()
+    
+    if favorite:
+        # Remove from favorites
+        db.session.delete(favorite)
+        db.session.commit()
+        flash('Recipe removed from favorites', 'info')
+    else:
+        # Add to favorites
+        favorite = Favorite(user_id=current_user.id, recipe_id=recipe.id)
+        db.session.add(favorite)
+        db.session.commit()
+        flash('Recipe added to favorites', 'success')
+    
+    # Redirect back to the previous page
+    next_page = request.referrer or url_for('main.recipe_detail', recipe_id=recipe_id)
+    return redirect(next_page)
