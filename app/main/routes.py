@@ -1,7 +1,7 @@
 from flask import Blueprint, render_template, redirect, url_for, flash, request
 from flask_login import login_required, current_user
 from app.extensions import db, bcrypt
-from app.models import Recipe, Category, User, Ingredient, RecipeIngredient, Comment
+from app.models import Recipe, Category, User, Ingredient, RecipeIngredient, Comment, Favorite
 from app.main.forms import RecipeForm, CommentForm, ProfileForm
 
 main = Blueprint('main', __name__)
@@ -69,9 +69,15 @@ def edit_profile():
 
 @main.route('/recipes')
 def all_recipes():
-    """Display all recipes with filtering options."""
+    """
+    Display all recipes with filtering options and pagination.
+    
+    Supports filtering by category and paginates results for better performance.
+    """
     # Get query parameters for filtering
     category_id = request.args.get('category', type=int)
+    page = request.args.get('page', 1, type=int)
+    per_page = 9  # Number of recipes per page
     
     # Base query
     query = Recipe.query
@@ -81,14 +87,18 @@ def all_recipes():
         category = Category.query.get_or_404(category_id)
         query = query.filter(Recipe.categories.contains(category))
     
-    # Get recipes, newest first
-    recipes = query.order_by(Recipe.created_at.desc()).all()
+    # Get recipes, newest first with pagination
+    pagination = query.order_by(Recipe.created_at.desc()).paginate(
+        page=page, per_page=per_page, error_out=False
+    )
+    recipes = pagination.items
     
     # Get all categories for filter dropdown
     categories = Category.query.all()
     
     return render_template('main/recipes.html', 
-                          recipes=recipes, 
+                          recipes=recipes,
+                          pagination=pagination,
                           categories=categories,
                           selected_category=category_id,
                           title='All Recipes')
