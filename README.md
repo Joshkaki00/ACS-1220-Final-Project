@@ -12,6 +12,52 @@ CulinaryConnect is a recipe sharing platform where users can share their favorit
 - **Favorites**: Save recipes to your favorites for easy access
 - **User Profiles**: View user profiles and their recipe collections
 
+## Database Schema
+
+```
+┌─────────────┐     ┌─────────────┐     ┌─────────────┐
+│    User     │     │   Recipe    │     │  Category   │
+├─────────────┤     ├─────────────┤     ├─────────────┤
+│ id          │1───N│ id          │N───M│ id          │
+│ username    │     │ title       │     │ name        │
+│ email       │     │ description │     │ description │
+│ password    │     │ prep_time   │     └─────────────┘
+│ profile_pic │     │ cook_time   │            
+│ created_at  │     │ servings    │            
+└─────────────┘     │ image_url   │      ┌─────────────┐
+       │1           │ created_at  │      │ Ingredient  │
+       │            │ user_id     │      ├─────────────┤
+       │            └─────────────┘      │ id          │
+       │                   │1            │ name        │
+       │                   │             │ unit        │
+       │            ┌─────────────┐      └─────────────┘
+       │        1  N│RecipeIngred.│             │1
+       │            ├─────────────┤             │
+       │            │ id          │             │
+       │            │ recipe_id   │N───────────1│
+       │            │ ingred_id   │             │
+       │            │ quantity    │             │
+       │            └─────────────┘             │
+       │                                         │
+       │1           ┌─────────────┐             │
+       └───────────N│  Comment    │             │
+       │1           ├─────────────┤             │
+       │            │ id          │             │
+       │            │ content     │             │
+       │            │ created_at  │             │
+       │            │ recipe_id   │             │
+       │            │ user_id     │             │
+       │            └─────────────┘             │
+       │                                         │
+       │            ┌─────────────┐             │
+       └───────────N│  Favorite   │             │
+                    ├─────────────┤             │
+                    │ id          │             │
+                    │ user_id     │             │
+                    │ recipe_id   │             │
+                    └─────────────┘             │
+```
+
 ## Tech Stack
 
 - **Backend**: Flask, SQLAlchemy, Flask-Login, Flask-WTF
