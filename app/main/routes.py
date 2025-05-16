@@ -3,6 +3,7 @@ from flask_login import login_required, current_user
 from app.extensions import db, bcrypt
 from app.models import Recipe, Category, User, Ingredient, RecipeIngredient, Comment, Favorite
 from app.main.forms import RecipeForm, CommentForm, ProfileForm
+from sqlalchemy import or_
 
 main = Blueprint('main', __name__)
 
@@ -73,9 +74,11 @@ def all_recipes():
     Display all recipes with filtering options and pagination.
     
     Supports filtering by category and paginates results for better performance.
+    Also allows searching by recipe title and description.
     """
-    # Get query parameters for filtering
+    # Get query parameters for filtering and search
     category_id = request.args.get('category', type=int)
+    search_query = request.args.get('search', type=str)
     page = request.args.get('page', 1, type=int)
     per_page = 9  # Number of recipes per page
     
@@ -86,6 +89,16 @@ def all_recipes():
     if category_id:
         category = Category.query.get_or_404(category_id)
         query = query.filter(Recipe.categories.contains(category))
+    
+    # Apply search filter if provided
+    if search_query:
+        search_terms = f"%{search_query}%"
+        query = query.filter(
+            or_(
+                Recipe.title.ilike(search_terms),
+                Recipe.description.ilike(search_terms)
+            )
+        )
     
     # Get recipes, newest first with pagination
     pagination = query.order_by(Recipe.created_at.desc()).paginate(
@@ -101,6 +114,7 @@ def all_recipes():
                           pagination=pagination,
                           categories=categories,
                           selected_category=category_id,
+                          search_query=search_query,
                           title='All Recipes')
 
 @main.route('/recipes/<int:recipe_id>', methods=['GET', 'POST'])
