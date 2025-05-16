@@ -1,7 +1,7 @@
 # Create your forms here.
 
 from flask_wtf import FlaskForm
-from wtforms import StringField, TextAreaField, IntegerField, SelectMultipleField, SubmitField, FloatField, PasswordField
+from wtforms import StringField, TextAreaField, IntegerField, SelectMultipleField, SubmitField, FloatField, PasswordField, RadioField
 from wtforms.validators import DataRequired, Length, NumberRange, URL, Optional, Email, EqualTo, ValidationError
 from app.models import Category, User
 
@@ -122,3 +122,19 @@ class ProfileForm(FlaskForm):
             user = User.query.filter_by(email=email.data).first()
             if user:
                 raise ValidationError('Email is already registered. Please use a different one.')
+
+
+class RatingForm(FlaskForm):
+    """
+    Form for rating recipes.
+    
+    Provides a radio button selection for 1-5 star ratings.
+    """
+    
+    value = RadioField('Rating', 
+                      choices=[(1, '1 Star'), (2, '2 Stars'), (3, '3 Stars'), 
+                               (4, '4 Stars'), (5, '5 Stars')],
+                      coerce=int,
+                      validators=[DataRequired()])
+    
+    submit = SubmitField('Submit Rating')
